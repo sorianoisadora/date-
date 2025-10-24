@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Entre Olhares — Jogo Interativo</title>
+<style>
+:root{
+  --bg:#0b0b0d;
+  --card:#141416;
+  --accent:#b71c1c;
+  --gold:#c89b4a;
+  --text:#e9e6e3;
+  --muted:#9b9896;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(183,28,28,0.06), transparent 6%),
+              radial-gradient(1000px 500px at 90% 90%, rgba(200,155,74,0.03), transparent 6%),
+              var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  min-height:100vh;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.container{
+  width:100%;
+  max-width:980px;
+  display:grid;
+  grid-template-columns: 1fr 360px;
+  gap:24px;
+}
+.header{
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.title{
+  display:flex;
+  flex-direction:column;
+}
+.title h1{margin:0;font-size:20px;letter-spacing:1px}
+.title p{margin:0;color:var(--muted);font-size:13px}
+.controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.btn{
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.06));
+  border:1px solid rgba(255,255,255,0.04);
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  color:var(--text);
+  font-weight:600;
+  font-size:14px;
+}
+.btn.secondary{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.02);
+  color:var(--muted);
+}
+.deck{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+  border-radius:16px;
+  padding:28px;
+  height:640px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.card-area{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:1400px;
+}
+.card{
+  width:100%;
+  max-width:520px;
+  height:320px;
+  background:var(--card);
+  border-radius:14px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition: transform 600ms cubic-bezier(.2,.9,.3,1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+.card.flipped{ transform: rotateY(180deg); }
+.card-face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  border-radius:14px;
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+.face-front{
+  background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+  border:1px solid rgba(255,255,255,0.02);
+}
+.face-back{
+  transform:rotateY(180deg);
+  background: linear-gradient(135deg, rgba(183,28,28,0.06), rgba(0,0,0,0.09));
+  border:1px solid rgba(255,255,255,0.03);
+}
+.q-number{
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+.q-text{
+  font-size:20px;
+  line-height:1.3;
+  color:var(--text);
+  max-height:58%;
+  overflow:auto;
+  padding-right:6px;
+}
+.hint{font-size:13px;color:var(--muted);margin-top:12px}
+.side{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius:12px;
+  padding:18px;
+  height:640px;
+  overflow:auto;
+}
+.input, .select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:transparent;
+  color:var(--text);
+  margin-bottom:10px;
+  font-size:14px;
+}
+.small{
+  font-size:12px;color:var(--muted)
+}
+.footer{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+}
+.actions{display:flex;gap:8px}
+.card-count{font-size:12px;color:var(--muted)}
+.legend{font-size:12px;color:var(--muted);margin-top:10px}
+.tag{
+  display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,0.25);
+  border:1px solid rgba(255,255,255,0.02);font-size:12px;margin-right:6px;
+}
+.footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}
+.controls .btn.play{
+  background:linear-gradient(90deg,var(--accent),#a31515);
+  color:white;
+  border: none;
+  padding:12px 16px;
+  box-shadow: 0 6px 18px rgba(183,28,28,0.18);
+}
+.draw-history{margin-top:12px;font-size:13px;color:var(--muted)}
+.number-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:10px}
+.num-btn{padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.02);font-size:12px;color:var(--muted);cursor:pointer}
+.num-btn.taken{background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.02);color:var(--text)}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+@media(max-width:980px){
+  .container{grid-template-columns:1fr; padding-bottom:40px}
+  .side{height:auto}
+  .deck{height:auto}
+}
+</style>
+</head>
+<body>
+<div class="container" role="application" aria-label="Jogo Entre Olhares">
+  <div class="header">
+    <div class="title">
+      <h1>Entre Olhares</h1>
+      <p>Cartas Surpresa • Modo Intenso — Clique para revelar</p>
+    </div>
+    <div class="controls">
+      <button class="btn secondary" id="shuffleBtn" title="Embaralhar">Embaralhar</button>
+      <button class="btn play" id="drawBtn" title="Sacar carta">SACAR CARTA</button>
+      <button class="btn" id="flipBtn" title="Mostrar/Esconder">Virar</button>
+      <button class="btn" id="resetBtn" title="Reiniciar baralho">Reiniciar</button>
+    </div>
+  </div>
+
+  <div class="deck" aria-hidden="false">
+    <div class="card-area" role="region" aria-label="Carta atual">
+      <div class="card" id="card">
+        <div class="card-face face-front">
+          <div class="q-number" id="cardNumber"># —</div>
+          <div class="q-text" id="cardText">Clique em "SACAR CARTA" ou escolha um número à direita.</div>
+          <div class="hint">Toque no botão "Virar" ou clique na carta para revelar/ocultar.</div>
+        </div>
+        <div class="card-face face-back">
+          <div style="font-size:18px;font-weight:700;color:var(--gold)">Entre Olhares</div>
+          <div style="margin-top:8px;color:var(--muted)">Toque novamente para voltar.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>
+        <div class="card-count" id="remaining">Cartas restantes: 100</div>
+        <div class="legend">
+          <span class="tag">Profundo</span>
+          <span class="tag">Picante</span>
+          <span class="tag">Misto</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="prevBtn" class="btn secondary">Anterior</button>
+        <button id="nextBtn" class="btn secondary">Próximo</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="side" aria-label="Controles laterais">
+    <div>
+      <label class="small">Escolher número (1–100)</label>
+      <input id="numberInput" class="input" type="number" min="1" max="100" placeholder="Digite um número e pressione Enter" />
+      <div class="note">Ou clique em qualquer número abaixo:</div>
+      <div class="number-grid" id="numberGrid"></div>
+
+      <div style="margin-top:12px;">
+        <label class="small">Modo de jogo</label>
+        <select id="modeSelect" class="select" aria-label="Modo de jogo">
+          <option value="random">Aleatório</option>
+          <option value="sequential">Sequencial (após embaralhar)</option>
+        </select>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label class="small">Histórico de cartas sacadas</label>
+        <div class="draw-history" id="history"></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button id="downloadBtn" class="btn">Baixar HTML (Offline)</button>
+        <button id="printBtn" class="btn secondary">Imprimir / Salvar PDF</button>
+      </div>
+
+      <div class="footer-note">Dica: se pular a resposta, dê um beijo :)</div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* Questions array (100) */
+const questions = [
+"Qual foi o momento da sua vida em que você mais se sentiu verdadeiramente vivo?",
+"O que mais te desperta desejo em alguém — olhar, voz ou atitude?",
+"Se você pudesse apagar um medo, qual seria?",
+"Prefere provocar ou ser provocado(a)?",
+"Qual lembrança da infância você mais sente no corpo até hoje?",
+"Se eu te desse carta branca pra realizar uma fantasia, qual seria a primeira?",
+"O que você mais admira em você, mas raramente fala pra alguém?",
+"Onde no corpo você mais gosta de ser tocado(a)?",
+"Se o amor fosse uma cor, qual seria pra você e por quê?",
+"Qual o som mais excitante que você já ouviu durante um momento íntimo?",
+"O que te faz sentir verdadeiramente conectado(a) a alguém?",
+"Você prefere uma noite de conexão profunda ou de prazer intenso?",
+"Qual o sentimento que mais te assusta sentir?",
+"Se eu sussurrasse algo proibido no seu ouvido agora, o que você gostaria que fosse?",
+"Qual a parte do seu passado que você ainda tenta entender?",
+"Gosta de ser surpreendido(a) durante o sexo ou prefere ter o controle?",
+"Quando foi a última vez que você chorou e por quê?",
+"Qual a sua definição de “intimidade”?",
+"Qual foi o toque mais memorável que você já recebeu?",
+"Se o desejo tivesse um cheiro, qual seria pra você?",
+"O que te faz sentir vulnerável?",
+"O que você mais sente vontade de fazer comigo quando estamos sozinhos?",
+"Você acha que duas pessoas podem se curar mutuamente?",
+"Gosta mais de beijos lentos e longos ou beijos intensos e famintos?",
+"Se pudesse revisitar um momento da sua vida pra revivê-lo, qual seria?",
+"Existe alguma fantasia que nunca contou pra ninguém?",
+"Qual o maior aprendizado que o amor já te deu?",
+"O que te deixa completamente sem ar?",
+"O que você precisa pra se sentir seguro(a) em um relacionamento?",
+"Gosta mais de provocar com palavras ou com gestos?",
+"Quando você se sente mais bonito(a)?",
+"Se eu te pedisse pra me guiar numa noite a dois, como começaria?",
+"Qual o seu maior desafio emocional no amor?",
+"O que em mim mais desperta sua imaginação?",
+"O que significa pra você “se entregar”?",
+"Se eu pudesse te tocar agora, onde você gostaria que fosse?",
+"Existe algo que você nunca superou completamente?",
+"Prefere que te olhem nos olhos ou que te toquem sem dizer nada?",
+"O que mais te faz sentir amor de verdade?",
+"Qual foi o beijo mais marcante da sua vida?",
+"Que parte de você mais deseja ser compreendida?",
+"Qual é o toque ou gesto que te desmonta?",
+"Se pudesse me dizer uma verdadе nua e crua, qual seria?",
+"Gosta quando alguém assume o comando ou quando tudo acontece naturalmente?",
+"O que significa prazer pra você — além do físico?",
+"Qual a sua lembrança mais sensual comigo?",
+"O que te faz sentir paz mesmo em meio ao caos?",
+"Você já sonhou comigo de forma quente? Como foi?",
+"O que você mais valoriza num amor que dura?",
+"Qual parte do meu corpo você mais observa sem perceber?",
+"Se pudesse se descrever em uma palavra, qual seria?",
+"Qual toque simples já te fez arrepiar inteiro(a)?",
+"Que tipo de dor emocional te ensinou mais?",
+"Qual a sua posição preferida pra sentir e ver o outro ao mesmo tempo?",
+"Você acredita que existe um “destino” entre duas pessoas?",
+"Já imaginou algo que gostaria de fazer comigo, mas nunca contou?",
+"Qual a sua memória mais afetiva de carinho?",
+"Gosta de ser beijado(a) em lugares inesperados?",
+"Qual foi o momento mais transformador da sua vida até hoje?",
+"Prefere o prazer lento e crescente ou algo mais intenso e direto?",
+"O que o silêncio diz pra você?",
+"Qual parte do corpo você acha mais bonita — sua e minha?",
+"O que você sente quando alguém realmente te enxerga?",
+"Qual fantasia te faria perder o controle?",
+"Qual o gesto mais amoroso que alguém já teve com você?",
+"O que te excita mais: o mistério ou a entrega?",
+"O que te faz sentir que está exatamente onde deveria estar?",
+"Gosta mais de explorar ou ser explorado(a)?",
+"Existe algo que ainda quer me perguntar, mas nunca teve coragem?",
+"Que tipo de toque você mais sente falta no dia a dia?",
+"O que o amor significa pra você agora — neste momento da vida?",
+"Se eu te vendasse, o que você gostaria que acontecesse depois?",
+"Quando foi a última vez que sentiu algo tão forte que te tirou o fôlego?",
+"Prefere ser olhado(a) com desejo ou com ternura?",
+"Qual parte do amor você ainda está aprendendo a lidar?",
+"O que te faz querer me beijar mais?",
+"Qual a lembrança que mais aquece o seu coração?",
+"O que te deixa mais louco(a) num toque?",
+"Que parte de você poucos conhecem, mas você adoraria mostrar?",
+"Você já sentiu desejo e amor ao mesmo tempo? Como é pra você?",
+"Qual o momento do dia em que mais pensa em mim?",
+"Se eu dissesse “me mostra o que você quer agora”, o que faria?",
+"O que mais te faz sentir vivo(a) num relacionamento?",
+"Gosta mais de carícias lentas ou mordidas intensas?",
+"Se o amor fosse um lugar, onde ele estaria pra você?",
+"Qual é o maior prazer que você ainda não viveu?",
+"O que te faz se apaixonar todos os dias por alguém?",
+"Qual foi o toque mais intenso que você já recebeu de mim?",
+"Se pudesse mudar algo em como ama, o que mudaria?",
+"Qual o tipo de beijo que mais combina com você?",
+"O que significa entrega emocional pra você?",
+"O que você mais gostaria que eu dissesse durante o prazer?",
+"Qual foi o momento mais bonito que já viveu comigo?",
+"O que te deixa mais vulnerável durante o desejo?",
+"O que você acha que te torna inesquecível pra alguém?",
+"O que em mim te provoca mais curiosidade?",
+"Qual foi o maior ato de amor que já fez por alguém?",
+"Qual seria o cenário perfeito pra uma noite entre nós?",
+"Se eu dissesse “me mostra o que sente sem usar palavras”, o que faria?",
+"No fim de tudo, o que mais te faz querer ficar — o amor ou o desejo?"
+];
+
+let deck = [];
+let history = [];
+let currentIndex = -1;
+let mode = 'random';
+
+function initDeck(){
+  deck = [];
+  for(let i=0;i<questions.length;i++){
+    deck.push({number:i+1, text:questions[i], taken:false});
+  }
+  updateRemaining();
+  renderNumberGrid();
+  renderHistory();
+  showCardPlaceholder();
+}
+function shuffleDeck(){
+  for(let i=deck.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]]=[deck[j],deck[i]];
+  }
+}
+function drawRandom(){
+  if(mode === 'random'){
+    const available = deck.filter(d=>!d.taken);
+    if(available.length===0){ alert('Todas as cartas foram sacadas. Reinicie para jogar novamente.'); return; }
+    const choice = available[Math.floor(Math.random()*available.length)];
+    showQuestion(choice.number-1);
+  } else {
+    // sequential: find next untaken in deck order
+    let idx = deck.findIndex(d=>!d.taken);
+    if(idx===-1){ alert('Todas as cartas foram sacadas. Reinicie para jogar novamente.'); return; }
+    showQuestion(deck[idx].number-1);
+  }
+}
+function showQuestion(idx){
+  const q = questions[idx];
+  currentIndex = idx;
+  // mark taken
+  const d = deck.find(x=>x.number===idx+1);
+  if(d) d.taken=true;
+  history.unshift({number:idx+1, text:q});
+  renderHistory();
+  updateRemaining();
+  displayCard(idx+1,q);
+  markNumberButton(idx+1);
+  playRevealSound();
+}
+function displayCard(number, text){
+  const card = document.getElementById('card');
+  document.getElementById('cardNumber').textContent = '# ' + number;
+  document.getElementById('cardText').textContent = text;
+  if(!card.classList.contains('flipped')) card.classList.add('flipped');
+}
+function showCardPlaceholder(){
+  const cardNumber = document.getElementById('cardNumber');
+  const cardText = document.getElementById('cardText');
+  cardNumber.textContent = '# —';
+  cardText.textContent = 'Clique em "SACAR CARTA" ou escolha um número à direita.';
+  const card = document.getElementById('card');
+  card.classList.remove('flipped');
+}
+function updateRemaining(){
+  const rem = deck.filter(d=>!d.taken).length;
+  document.getElementById('remaining').textContent = 'Cartas restantes: ' + rem;
+}
+function renderNumberGrid(){
+  const grid = document.getElementById('numberGrid');
+  grid.innerHTML='';
+  for(let i=1;i<=100;i++){
+    const btn = document.createElement('button');
+    btn.className='num-btn';
+    btn.textContent=i;
+    btn.dataset.num=i;
+    btn.addEventListener('click',()=>{ chooseNumber(i); });
+    grid.appendChild(btn);
+  }
+}
+function markNumberButton(n){
+  const grid = document.getElementById('numberGrid');
+  const btns = grid.querySelectorAll('button');
+  btns.forEach(b=>{
+    if(parseInt(b.dataset.num)===n) b.classList.add('taken');
+  });
+}
+function chooseNumber(n){
+  showQuestion(n-1);
+}
+function renderHistory(){
+  const el = document.getElementById('history');
+  el.innerHTML = history.slice(0,8).map(h=>`#${h.number} — ${h.text}`).join('<br><br>');
+}
+function prevCard(){
+  if(history.length<2) return;
+  // show second in history (previous)
+  const prev = history[1];
+  displayCard(prev.number, prev.text);
+}
+function nextCard(){
+  if(history.length===0) return;
+  const last = history[0];
+  displayCard(last.number, last.text);
+}
+function resetGame(){
+  if(!confirm('Reiniciar baralho? As cartas já sacadas serão liberadas.')) return;
+  initDeck();
+  history=[];
+  renderHistory();
+  showCardPlaceholder();
+  currentIndex=-1;
+}
+function playRevealSound(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type='sine';
+    o.frequency.value = 440;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+    o.stop(ctx.currentTime + 0.35);
+  }catch(e){}
+}
+document.addEventListener('click', (e)=>{
+  const card = document.getElementById('card');
+  if(e.target.closest('#card')) {
+    card.classList.toggle('flipped');
+  }
+});
+document.getElementById('drawBtn').addEventListener('click', ()=>{ drawRandom(); });
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  shuffleDeck(); alert('Baralho embaralhado (modo sequencial seguirá nova ordem).'); 
+});
+document.getElementById('flipBtn').addEventListener('click', ()=>{
+  document.getElementById('card').classList.toggle('flipped');
+});
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+document.getElementById('prevBtn').addEventListener('click', prevCard);
+document.getElementById('nextBtn').addEventListener('click', nextCard);
+document.getElementById('numberInput').addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    const v = parseInt(e.target.value);
+    if(v>=1 && v<=100) chooseNumber(v);
+  }
+});
+document.getElementById('modeSelect').addEventListener('change',(e)=>{
+  mode = e.target.value;
+});
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  // download current HTML as offline file
+  const content = document.documentElement.outerHTML;
+  const blob = new Blob([content], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='entre_olhares_offline.html'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1500);
+});
+document.getElementById('printBtn').addEventListener('click', ()=>{ window.print(); });
+
+initDeck();
+</script>
+</body>
+</html>
